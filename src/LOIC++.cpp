@@ -3,7 +3,7 @@
 // Author      : Ivan Nelson Togboa Cadri
 // Version     :
 // Copyright   : 
-// Description : Hello World in C++, Ansi-style
+// Description : Linux c++ version oif LOIC
 //============================================================================
 
 #include <iostream>
