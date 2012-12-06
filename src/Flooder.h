@@ -6,20 +6,21 @@
  */
 
 
-
-namespace loic {
-
 #include <string>
+#include <thread>
+#include <exception>
+#include <chrono>
+namespace loic
+{
 class Flooder {
 
-private:
+protected:
 	int delay;
 	bool flooding;
 	std::string ip;
 	int port;
 	bool resp;
-
-
+	std::thread thread;
 	//Accessors
 	inline int Delay(){ return delay;}
 	inline bool Resp(){return resp;}
@@ -36,11 +37,11 @@ private:
 	inline void Resp(bool resp){this->resp = resp;}
 
 public :
-	Flooder(){}
-	virtual ~Flooder(){}
+	virtual ~Flooder();
 	//methods that must be implemented by children
 	virtual void Start();
 	virtual void Stop();
+	virtual void work();
 
 };
 
