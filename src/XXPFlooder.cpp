@@ -6,8 +6,7 @@
  */
 
 #include "XXPFlooder.h"
-#include <chrono>
-#include <thread>
+
 namespace loic {
 
 
@@ -42,7 +41,7 @@ namespace loic {
 							if(delay>0)
 							{
 								//sleep for the delay
-								std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+							//	std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 							}
 						}
 					}
@@ -63,7 +62,7 @@ namespace loic {
 
 							if(delay>0)
 							{
-								std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+								boost::this_thread::sleep(boost::posix_time::milliseconds(delay));
 							}
 						}
 					}

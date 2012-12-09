@@ -1,22 +1,19 @@
-Tutorial3: LOIC++.o Flooder.o HTTPFlooder.o XXPFlooder.o 
-	g++ -o run LOIC++.o Flooder.o HTTPFlooder.o XXPFlooder.o -std=c++0x -lpthread 
+Tutorial3: LOIC++.cpp Flooder.o HTTPFlooder.o XXPFlooder.o 
+	g++ -Wall -o run LOIC++.cpp Flooder.o HTTPFlooder.o XXPFlooder.o -lboost_thread-mt -lboost_date_time
 
 # now define how each object file is a target and list dependencies and how
 #  to build that object file if any dependencies change
 	
 Flooder.o: Flooder.cpp Flooder.h
-	g++ -c Flooder.cpp -std=c++0x -lpthread
+	g++ -Wall -c Flooder.cpp
 
 
 HTTPFlooder.o: Flooder.o HTTPFlooder.h HTTPFlooder.cpp
-	g++ -c HTTPFlooder.cpp -std=c++0x -lpthread
+	g++ -Wall -c HTTPFlooder.cpp
 
 XXPFlooder.o:	Flooder.o XXPFlooder.h XXPFlooder.cpp
-	g++ -c XXPFlooder.cpp -std=c++0x -lpthread
+	g++ -Wall -c XXPFlooder.cpp
 	
-LOIC++.o: LOIC++.cpp
-	g++ -c LOIC++.cpp
-
 clean:
 	rm  run *.o *.gch
 

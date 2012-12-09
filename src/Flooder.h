@@ -7,9 +7,9 @@
 
 
 #include <string>
-#include <thread>
-#include <exception>
-#include <chrono>
+#include <boost/thread/thread.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <stdexcept>
 namespace loic
 {
 class Flooder {
@@ -20,7 +20,7 @@ protected:
 	std::string ip;
 	int port;
 	bool resp;
-	std::thread thread;
+	boost::thread thread;
 	//Accessors
 	inline int Delay(){ return delay;}
 	inline bool Resp(){return resp;}

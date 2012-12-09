@@ -27,15 +27,15 @@ namespace loic {
 	{
 		try
 		{
-			this->state = ReqState::readyState;
+			this->state = readyState;
 
 
-			this->state = ReqState::connectingState;
+			this->state = connectingState;
 
 			/* socket work */
 
 
-			this->state = ReqState::downloadingState;
+			this->state = downloadingState;
 			requested++;
 
 			if(resp)
@@ -43,12 +43,12 @@ namespace loic {
 
 			}
 
-			this->state = ReqState::completedState;
+			this->state = completedState;
 
 			downloaded++;
 			if(delay>0)
 			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+				;
 			}
 		}
 		catch(std::exception & exe)

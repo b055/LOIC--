@@ -20,7 +20,7 @@ private:
 		int failed;
 		std::string subsite;
 		int timeout;
-		ReqState state;
+		HTTPFlooder::ReqState state;
 
 public:
 		HTTPFlooder(std::string ip, int port, std::string subSite, bool resp, int delay, int timeout)
@@ -41,10 +41,10 @@ public:
 		inline int Failed(){return failed;}
 		inline std::string Subsite(){return subsite;}
 		inline int Timeout(){return timeout;}
-		inline ReqState State(){return state;}
+		inline HTTPFlooder::ReqState State(){return state;}
 
 
-		inline void State(ReqState newState){state = newState;}
+		inline void State(HTTPFlooder::ReqState newState){state = newState;}
 		inline void Downloaded(int down){downloaded = down;}
 		inline void Requested(int req){requested = req;}
 		inline void Failed(int fail){failed = fail;}
