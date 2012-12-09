@@ -48,7 +48,7 @@ namespace loic {
 			downloaded++;
 			if(delay>0)
 			{
-				;
+				boost::this_thread::sleep(boost::posix_time::milliseconds(delay));
 			}
 		}
 		catch(std::exception & exe)
