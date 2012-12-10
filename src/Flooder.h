@@ -20,6 +20,7 @@ protected:
 	std::string ip;
 	int port;
 	bool resp;
+	bool hostname; //boolean that show's whether to use hostname or ip address
 	boost::thread thread;
 	//Accessors
 	inline int Delay(){ return delay;}
