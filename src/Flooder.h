@@ -10,6 +10,16 @@
 #include <boost/thread/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <stdexcept>
+#include <iostream>
+#include <sstream>
+//for sockets
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <errno.h>
+#include <arpa/inet.h>
 namespace loic
 {
 class Flooder {
@@ -21,7 +31,8 @@ protected:
 	int port;
 	bool resp;
 	bool hostname; //boolean that show's whether to use hostname or ip address
-	boost::thread thread;
+
+
 	//Accessors
 	inline int Delay(){ return delay;}
 	inline bool Resp(){return resp;}
@@ -38,7 +49,8 @@ protected:
 	inline void Resp(bool resp){this->resp = resp;}
 
 public :
-	virtual ~Flooder();
+	Flooder(){}
+	virtual ~Flooder(){};
 	//methods that must be implemented by children
 	virtual void Start();
 	virtual void Stop();

