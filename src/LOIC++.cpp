@@ -6,10 +6,12 @@
 // Description : Linux c++ version oif LOIC
 //============================================================================
 
-#include <iostream>
-using namespace std;
+#include "HTTPFlooder.h"
+
+using namespace loic;
 
 int main() {
-	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+	HTTPFlooder * flood = new loic::HTTPFlooder("127.0.0.1",8080,"gibberish",false,0,2);
+	flood->Start();
 	return 0;
 }

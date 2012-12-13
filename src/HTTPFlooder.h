@@ -10,6 +10,9 @@
 
 #include "Flooder.h"
 
+
+
+#include <time.h>
 namespace loic {
 
 class HTTPFlooder: public loic::Flooder {
@@ -21,7 +24,8 @@ private:
 		std::string subsite;
 		int timeout;
 		HTTPFlooder::ReqState state;
-
+		time_t lastAction;
+		void checkTimeOut();
 public:
 		HTTPFlooder(std::string ip, int port, std::string subSite, bool resp, int delay, int timeout)
 		{
@@ -32,7 +36,7 @@ public:
 			this->delay = delay;
 			this->timeout = timeout;
 		};
-
+		HTTPFlooder(){}
 				//destructor
 		virtual ~HTTPFlooder();
 
