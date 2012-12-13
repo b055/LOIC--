@@ -8,7 +8,7 @@
 #ifndef XXPFLOODER_H_
 #define XXPFLOODER_H_
 
-#include "Flooder.h"
+#include "Flooder.cpp"
 namespace loic {
 
 class XXPFlooder: public loic::Flooder{

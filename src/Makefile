@@ -4,7 +4,7 @@ Tutorial3: LOIC++.cpp Flooder.o HTTPFlooder.o XXPFlooder.o
 # now define how each object file is a target and list dependencies and how
 #  to build that object file if any dependencies change
 	
-Flooder.o: Flooder.cpp Flooder.h
+Flooder.o: Flooder.cpp
 	g++ -Wall -c Flooder.cpp
 
 

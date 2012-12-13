@@ -8,7 +8,7 @@
 #ifndef HTTPFLOODER_H_
 #define HTTPFLOODER_H_
 
-#include "Flooder.h"
+#include "Flooder.cpp"
 
 
 
@@ -36,9 +36,8 @@ public:
 			this->delay = delay;
 			this->timeout = timeout;
 		};
-		HTTPFlooder(){}
 				//destructor
-		virtual ~HTTPFlooder();
+		virtual ~HTTPFlooder(){};
 
 		inline int Downloaded(){return downloaded;}
 		inline int Requested(){return requested;}
