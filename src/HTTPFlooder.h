@@ -13,6 +13,7 @@
 
 
 #include <time.h>
+#include <fcntl.h>
 namespace loic {
 
 class HTTPFlooder: public loic::Flooder {

