@@ -59,7 +59,7 @@ namespace loic {
 
 
 			server_addr.sin_family = AF_INET;
-			server_addr.sin_port = htons(port);
+			server_addr.sin_port = htons(atoi(port.c_str()));
 			server_addr.sin_addr = *((struct in_addr *)host->h_addr);
 			bzero(&(server_addr.sin_zero),8);
 

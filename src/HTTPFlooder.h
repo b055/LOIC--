@@ -9,7 +9,7 @@
 #define HTTPFLOODER_H_
 
 #include "Flooder.cpp"
-
+#include <errno.h>
 
 
 #include <time.h>
@@ -28,7 +28,7 @@ private:
 		time_t lastAction;
 		void checkTimeOut();
 public:
-		HTTPFlooder(std::string ip, int port, std::string subSite, bool resp, int delay, int timeout)
+		HTTPFlooder(std::string ip, std::string port, std::string subSite, bool resp, int delay, int timeout)
 		{
 			this->ip = ip;
 			this->port = port;
