@@ -55,6 +55,11 @@ void HTTPFlooder::work()
 
 				if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
 				{
+					if(!resp)
+					{
+						int val = fcntl(sfd, F_GETFL, 0);
+						fcntl(sfd, F_SETFL, val | O_NONBLOCK);
+					}
 					this->state = requestingState;
 					std::cout<<"successfully connect\n";
 					break;                  /* Success */
@@ -62,10 +67,6 @@ void HTTPFlooder::work()
 
 				close(sfd);
 			}
-
-            int val = fcntl(sfd, F_GETFL, 0);
-            // fcntl(sfd, F_SETFL, val | O_NONBLOCK);
-
 
 			if (rp == NULL) {               /* No address succeeded */
 				fprintf(stderr, "Could not connect\n");
@@ -86,7 +87,7 @@ void HTTPFlooder::work()
 			len = strlen(buf) + 1;
 			/* +1 for terminating null byte */
 
-			if (write(sfd, buf, len) != len)
+			if (write(sfd, buf, len) != signed(len))
 			{
 				std::cerr<<"partial/failed write"<<std::endl;
 				continue;
