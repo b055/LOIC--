@@ -9,11 +9,7 @@
 #define HTTPFLOODER_H_
 
 #include "Flooder.cpp"
-#include <errno.h>
 
-
-#include <time.h>
-#include <fcntl.h>
 namespace loic {
 
 class HTTPFlooder: public loic::Flooder {
@@ -36,6 +32,8 @@ public:
 			this->resp = resp;
 			this->delay = delay;
 			this->timeout = timeout;
+
+			BUF_SIZE = 64;
 		};
 				//destructor
 		virtual ~HTTPFlooder(){};

@@ -23,6 +23,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <arpa/inet.h>
+
+#include <errno.h>
+#include <time.h>
+#include <fcntl.h>
 namespace loic
 {
 class Flooder {
@@ -34,7 +38,7 @@ protected:
 	std::string port;
 	bool resp;
 	bool hostname; //boolean that show's whether to use hostname or ip address
-
+	int BUF_SIZE;
 
 	//Accessors
 	inline int Delay(){ return delay;}

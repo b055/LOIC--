@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#define BUF_SIZE 64
 namespace loic {
 
 void HTTPFlooder::work()
@@ -36,6 +35,7 @@ void HTTPFlooder::work()
 		while(this->isFlooding())
 		{
 			this->state = readyState;
+
 			//tick
 			lastAction = time(NULL)/3600;
 
@@ -64,7 +64,9 @@ void HTTPFlooder::work()
 			}
 
             int val = fcntl(sfd, F_GETFL, 0);
-           // fcntl(sfd, F_SETFL, val | O_NONBLOCK);
+            // fcntl(sfd, F_SETFL, val | O_NONBLOCK);
+
+
 			if (rp == NULL) {               /* No address succeeded */
 				fprintf(stderr, "Could not connect\n");
 				continue;
