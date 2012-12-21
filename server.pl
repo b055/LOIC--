@@ -18,7 +18,7 @@
     $SIG{CHLD} = \&REAPER;
 	use IO::Handle;
 	my $log = IO::Handle->new();
-	open LOG,">>","/home/ivan/log.txt";
+	open LOG,">>","/home/local/ANT/icadri/log.txt";
 	$log->fdopen(fileno(LOG),"w");
 	$log->autoflush(1);
     for ( ; $paddr = accept(Client, Server); close Client) {

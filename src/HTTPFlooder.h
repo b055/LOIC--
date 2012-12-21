@@ -24,7 +24,7 @@ private:
 		time_t lastAction;
 		void checkTimeOut();
 public:
-		HTTPFlooder(std::string ip, std::string port, std::string subSite, bool resp, int delay, int timeout)
+		HTTPFlooder(std::string ip, std::string port, std::string subSite, bool resp, int delay, int timeout,int threads)
 		{
 			this->ip = ip;
 			this->port = port;
@@ -32,8 +32,8 @@ public:
 			this->resp = resp;
 			this->delay = delay;
 			this->timeout = timeout;
-
-			BUF_SIZE = 64;
+			this->numThreads = threads;
+			BUF_SIZE = 2048;
 		};
 				//destructor
 		virtual ~HTTPFlooder(){};

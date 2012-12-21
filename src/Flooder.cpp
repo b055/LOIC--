@@ -39,6 +39,7 @@ protected:
 	bool resp;
 	bool hostname; //boolean that show's whether to use hostname or ip address
 	int BUF_SIZE;
+	unsigned int numThreads;
 
 	//Accessors
 	inline int Delay(){ return delay;}
