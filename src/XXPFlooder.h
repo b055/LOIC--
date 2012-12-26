@@ -28,7 +28,7 @@ class XXPFlooder: public loic::Flooder{
 
 
 	public:
-		XXPFlooder(std::string ip, std::string port, int proto, int delay, bool resp, std::string data){
+		XXPFlooder(std::string ip, int port, int proto, int delay, bool resp, std::string data){
 			this->ip = ip;
 			this->port = port;
 			this->protocol = proto;

@@ -8,8 +8,17 @@
 #ifndef HTTPFLOODER_H_
 #define HTTPFLOODER_H_
 
-#include "Flooder.cpp"
 
+#include "Flooder.cpp"
+#include <sys/types.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <openssl/bio.h>
+#include <openssl/rand.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 namespace loic {
 
 class HTTPFlooder: public loic::Flooder {
@@ -22,9 +31,14 @@ private:
 		int timeout;
 		HTTPFlooder::ReqState state;
 		time_t lastAction;
+		int SSL_PORT;
+		typedef boost::shared_mutex Lock;
+		typedef boost::unique_lock< boost::shared_mutex > WriteLock;
+		typedef boost::shared_lock< boost::shared_mutex >  ReadLock;
+		Lock locker;
 		void checkTimeOut();
 public:
-		HTTPFlooder(std::string ip, std::string port, std::string subSite, bool resp, int delay, int timeout,int threads)
+		HTTPFlooder(std::string ip, int port, std::string subSite, bool resp, int delay, int timeout,int threads,bool reader,bool debug):SSL_PORT(443)
 		{
 			this->ip = ip;
 			this->port = port;
@@ -33,7 +47,18 @@ public:
 			this->delay = delay;
 			this->timeout = timeout;
 			this->numThreads = threads;
-			BUF_SIZE = 2048;
+			BUF_SIZE = 64;
+			this->requested = 0;
+			this->downloaded = 0;
+			this->failed = 0;
+			this->debug = debug;
+			this->reader = reader;
+			if(port == SSL_PORT )
+			{
+				SSL_load_error_strings();
+				SSL_library_init();
+			}
+
 		};
 				//destructor
 		virtual ~HTTPFlooder(){};

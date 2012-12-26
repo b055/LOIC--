@@ -36,6 +36,9 @@ namespace loic {
 		hints.ai_family = AF_INET;    /* Allow IPv4 or IPv6 */
 		hints.ai_flags = 0;
 		int len = data.length()+1;
+
+		std::stringstream port("");
+		port<<this->port;
 		if(this->protocol == 1)
 		{
 			hints.ai_socktype = SOCK_STREAM; /* tcp socket */
@@ -44,7 +47,7 @@ namespace loic {
 			try
 			{
 				//set up the target host
-				s = getaddrinfo(ip.c_str(),port.c_str(), &hints, &result);
+				s = getaddrinfo(ip.c_str(),port.str().c_str(), &hints, &result);
 				if (s != 0) {
 					std::cerr<<"getaddrinfo: "<<gai_strerror(s)<<std::endl;
 
@@ -143,7 +146,7 @@ namespace loic {
 			{
 				//set up the target host
 
-				s = getaddrinfo(ip.c_str(),port.c_str(), &hints, &result);
+				s = getaddrinfo(ip.c_str(),port.str().c_str(), &hints, &result);
 				if (s != 0) {
 					std::cerr<<"getaddrinfo: "<<gai_strerror(s)<<std::endl;
 
