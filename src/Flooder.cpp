@@ -1,13 +1,5 @@
-/*
- * Flooder.h
- *
- *  Created on: Dec 4, 2012
- *      Author: ivan
- */
-
 #ifndef FLOODER_H_
 #define FLOODER_H_
-
 
 #include <string>
 #include <boost/thread/thread.hpp>

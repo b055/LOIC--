@@ -1,11 +1,3 @@
-//============================================================================
-// Name        : LOIC++.cpp
-// Author      : Ivan Nelson Togboa Cadri
-// Version     :
-// Copyright   : 
-// Description : Linux c++ version oif LOIC
-//============================================================================
-
 #include "HTTPFlooder.h"
 #include "XXPFlooder.h"
 #include <boost/program_options.hpp>

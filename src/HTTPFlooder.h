@@ -1,10 +1,3 @@
-/*
- * HTTPFlooder.h
- *
- *  Created on: Dec 7, 2012
- *      Author: ivan
- */
-
 #ifndef HTTPFLOODER_H_
 #define HTTPFLOODER_H_
 

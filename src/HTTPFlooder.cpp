@@ -1,13 +1,4 @@
-/*
- * HTTPFlooder.cpp
- *
- *  Created on: Dec 7, 2012
- *      Author: ivan
- */
-
-
 #include "HTTPFlooder.h"
-
 
 namespace loic {
 
