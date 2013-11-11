@@ -1,7 +1,7 @@
 
 LOIC++
 
-A c++ version of LOIC. And hopefully more anonymous
+A c++ version of LOIC.
 
 
 Tutorials on socket programming
